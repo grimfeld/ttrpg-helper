@@ -14,9 +14,17 @@ The apps sync a session **peer to peer, with no server**: session data is never 
 - UI text in English; translations come later (ADR-0003).
 - Desktop only for now (Windows, macOS, Linux). A mobile player app may come later; don't design it out, don't build for it yet.
 
+## Constraints
+
+Read `CONSTRAINTS.md` before writing code. Do not weaken it to make a change pass.
+
 ## Commands
 
-None yet. Add build, dev, test, lint and typecheck here with the first code, and copy them to "Checks" in `docs/agents/shipping.md`.
+- `scripts/check.sh fast`: floor and secrets. A hook runs it after every edit.
+- `scripts/check.sh task`: the task-end stage. The Stop hook runs it before you hand work back.
+- `scripts/check.sh full`: everything CI runs, including the dependency and code scans.
+
+Build, dev, test, lint and typecheck come with the workspace scaffold (#4).
 
 ## Boundaries
 

@@ -1,0 +1,8 @@
+# Default gitleaks rules. The only paths skipped are installed dependencies and build output,
+# which git ignores too. Changing this file is a change to the floor (CONSTRAINTS.md).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Dependencies and build output, never committed"
+paths = ['''(^|/)node_modules/''', '''(^|/)target/''', '''(^|/)dist/''', '''(^|/)\.git/''']
