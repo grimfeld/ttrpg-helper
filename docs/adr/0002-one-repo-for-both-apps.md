@@ -8,4 +8,4 @@ We chose one repository because both apps speak the same sync protocol and share
 
 - A change to the sync protocol or the shared model updates the core and both apps together.
 - Each app stays a thin Tauri and React shell over the core.
-- The package manager isn't chosen yet.
+- The workspace uses pnpm.

@@ -5,12 +5,12 @@ Tools for running a tabletop RPG session, made of at least two apps:
 - **GM app**: the Game Master's console. It is inspired by [grimfeld/regie-jdr](https://github.com/grimfeld/regie-jdr), a visual and audio control desk for the GM, and extends it.
 - **Player companion app**: what players use at the table. It must stay simple and quick to use mid-session; a feature that slows a player down belongs in the GM app or nowhere.
 
-The apps sync a session **peer to peer, with no server**: session data is never stored or read by a server, and never published on the internet. The transport is [iroh](https://www.iroh.computer/), with a relay we host ourselves for connections that can't go direct (ADR-0001).
+The apps sync a session **peer to peer, with no server**: session data is never stored or read by a server, and never published on the internet. The transport is [iroh](https://www.iroh.computer/), with a relay we host ourselves for connections that can't go direct (ADR-0001). The GM app is the source of truth: player apps send it requests and receive only what each player may see (ADR-0004).
 
 ## Stack
 
 - Tauri, TypeScript and React.
-- One repo: a workspace with a package per app and a shared core holding the domain logic and sync protocol (ADR-0002).
+- One repo: a pnpm workspace with a package per app and a shared core holding the domain logic and sync protocol (ADR-0002).
 - UI text in English; translations come later (ADR-0003).
 - Desktop only for now (Windows, macOS, Linux). A mobile player app may come later; don't design it out, don't build for it yet.
 
@@ -38,12 +38,9 @@ Read it for practices, not layout: it is an Electron app, so its folder and IPC 
 
 Before building a GM feature regie-jdr already has, read how it does it and its ADRs.
 
-## Open decisions
+## Decisions
 
-Don't pick these silently; ask, then record the answer as an ADR in `docs/adr/`.
-
-- **Who owns the session state.** Whether the GM app is the source of truth that players' apps mirror, or the state is shared between peers.
-- **Package manager** for the workspace.
+Recorded as ADRs in `docs/adr/`. A choice they don't cover that shapes the code (a library, a data format, a protocol change) is a question for the user, not a guess; record the answer as a new ADR.
 
 ## Agent skills
 
