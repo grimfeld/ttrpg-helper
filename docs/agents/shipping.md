@@ -45,9 +45,9 @@ Bookkeeping files (a conflict here needs no re-review):
 
 ## Checks
 
-Required on `main`: no CI checks yet (add them to the ruleset and here once CI exists), and `ship`.
+Required on `main`: `floor`, `secrets`, `dependencies` and `code-scan` (`.github/workflows/constraints.yml`, defined in `CONSTRAINTS.md`), and `ship`.
 
-Run locally before marking a PR ready: none yet.
+Run locally before marking a PR ready: `scripts/check.sh full`.
 
 ## After merge
 

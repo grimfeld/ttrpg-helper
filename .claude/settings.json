@@ -29,6 +29,15 @@
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.agentic-metrics/recorder.mjs\" 2>/dev/null || true"
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/constraints.sh\" fast"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -37,6 +46,14 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.agentic-metrics/recorder.mjs\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/constraints.sh\" task"
           }
         ]
       }

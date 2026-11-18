@@ -1,0 +1,69 @@
+# The CI stage of CONSTRAINTS.md. Each job is a required check on main; each calls scripts/check.sh
+# so CI and local runs share one definition. No path filters: a required check must run on every PR.
+name: Constraints
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+  GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+  OSV_SCANNER_VERSION: 2.7.0
+  OSV_SCANNER_SHA256: 160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
+  SEMGREP_VERSION: 1.184.0
+
+jobs:
+  floor:
+    name: floor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { fetch-depth: 0 }
+      - name: Floor guard against the base branch
+        env:
+          CHECK_BASE: origin/${{ github.base_ref }}
+        run: scripts/check.sh floor
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { fetch-depth: 0 }
+      - name: Install gitleaks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${GITLEAKS_VERSION}" --repo gitleaks/gitleaks --pattern "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" --dir /tmp
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | sha256sum -c -
+          sudo tar -xzf "/tmp/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -C /usr/local/bin gitleaks
+      - name: Scan the full history
+        run: scripts/check.sh secrets-history
+
+  dependencies:
+    name: dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install osv-scanner
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${OSV_SCANNER_VERSION}" --repo google/osv-scanner --pattern osv-scanner_linux_amd64 --dir /tmp
+          echo "${OSV_SCANNER_SHA256}  /tmp/osv-scanner_linux_amd64" | sha256sum -c -
+          sudo install -m 0755 /tmp/osv-scanner_linux_amd64 /usr/local/bin/osv-scanner
+      - name: Scan lockfiles
+        run: scripts/check.sh dependencies
+
+  code-scan:
+    name: code-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install Semgrep
+        run: pipx install "semgrep==${SEMGREP_VERSION}"
+      - name: Scan the code
+        run: scripts/check.sh code-scan
