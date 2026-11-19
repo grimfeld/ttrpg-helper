@@ -3,16 +3,13 @@
   "branchRegex": "^(\\d+)(?=[-_/]|$)|(?:^|[-_/])(?:issues?|tickets?|spec|gh|fix|bug|feat|feature)[-_/]?(\\d+)(?=[-_/]|$)",
   "integrationBranchPrefix": "integration/",
   "exclude": {
-    "authors": [
-      "dependabot"
-    ],
-    "branches": [
-      "dependabot/"
-    ]
+    "authors": ["dependabot"],
+    "branches": ["dependabot/"]
   },
   "autonomy": {
     "fullMaxFollowUps": 1,
     "fullMinClaudeCommitShare": 1
   },
-  "publish": "full"
+  "publish": "full",
+  "ciWorkflow": ".github/workflows/ci.yml"
 }

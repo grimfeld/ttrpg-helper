@@ -45,7 +45,7 @@ Bookkeeping files (a conflict here needs no re-review):
 
 ## Checks
 
-Required on `main`: `floor`, `secrets`, `dependencies` and `code-scan` (`.github/workflows/constraints.yml`, defined in `CONSTRAINTS.md`), and `ship`.
+Required on `main`: `floor`, `secrets`, `dependencies` and `code-scan` (`.github/workflows/constraints.yml`), `format` (`.github/workflows/ci.yml`), all defined in `CONSTRAINTS.md`, and `ship`.
 
 Run locally before marking a PR ready: `scripts/check.sh full`.
 

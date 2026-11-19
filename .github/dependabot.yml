@@ -1,0 +1,19 @@
+# Weekly updates. ship.yml lands patch and GitHub Actions updates without review;
+# anything else waits for a person to add `ship`. The cooldown lets a bad release be pulled
+# before we pick it up.
+version: 2
+updates:
+  - package-ecosystem: npm # pnpm workspaces use the npm ecosystem
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7

@@ -18,17 +18,18 @@ An exception goes in the Exceptions table, with an owner and an expiry; the floo
 
 ## Enforced with numbers
 
-| Dimension | Rule | Checked by | Runs at | Status |
-|-----------|------|-----------|---------|--------|
-| Floor | Zero findings in the diff against `main` | `node scripts/floor-guard.mjs` | every edit, task end, CI | live |
-| Secrets | Zero findings, history included in CI | `gitleaks dir .` (local), `gitleaks git` (CI), both `--redact --ignore-gitleaks-allow` | every edit, CI | live |
-| Security: dependencies | Block at a cut-off of at most 7.0 CVSS (high), unscored advisories included | `osv-scanner scan source -r` graded by `scripts/quality-gate.mjs osv` | CI | live |
-| Security: code | Zero findings at ERROR, HIGH or CRITICAL | `semgrep scan --config p/default --strict` graded by `scripts/quality-gate.mjs semgrep` | CI | live |
-| Coverage: TypeScript | Changed lines ≥ 80% covered | `vitest run --coverage` (lcov) intersected with the diff | task end, CI | pending #4 |
-| Coverage: Rust | Changed lines ≥ 80% covered | `cargo llvm-cov --lcov` intersected with the diff | CI | pending #4 |
-| Architecture | Zero violations: the shared core imports no `react`, `@tauri-apps/*` or app package; the two apps don't import each other (ADR-0002) | `depcruise` | task end, CI | pending #4 |
-| Types | Zero errors | `tsc -b`, `cargo clippy -- -D warnings` | task end, CI | pending #4 |
-| Lint | Zero errors | `eslint .` | task end, CI | pending #4 |
+| Dimension              | Rule                                                                                                                                 | Checked by                                                                              | Runs at                                | Status     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------- | ---------- |
+| Floor                  | Zero findings in the diff against `main`                                                                                             | `node scripts/floor-guard.mjs`                                                          | every edit, task end, CI               | live       |
+| Secrets                | Zero findings, history included in CI                                                                                                | `gitleaks dir .` (local), `gitleaks git` (CI), both `--redact --ignore-gitleaks-allow`  | every edit, CI                         | live       |
+| Security: dependencies | Block at a cut-off of at most 7.0 CVSS (high), unscored advisories included                                                          | `osv-scanner scan source -r` graded by `scripts/quality-gate.mjs osv`                   | CI                                     | live       |
+| Security: code         | Zero findings at ERROR, HIGH or CRITICAL                                                                                             | `semgrep scan --config p/default --strict` graded by `scripts/quality-gate.mjs semgrep` | CI                                     | live       |
+| Coverage: TypeScript   | Changed lines ≥ 80% covered                                                                                                          | `vitest run --coverage` (lcov) intersected with the diff                                | task end, CI                           | pending #4 |
+| Coverage: Rust         | Changed lines ≥ 80% covered                                                                                                          | `cargo llvm-cov --lcov` intersected with the diff                                       | CI                                     | pending #4 |
+| Architecture           | Zero violations: the shared core imports no `react`, `@tauri-apps/*` or app package; the two apps don't import each other (ADR-0002) | `depcruise`                                                                             | task end, CI                           | pending #4 |
+| Types                  | Zero errors                                                                                                                          | `tsc -b`, `cargo clippy -- -D warnings`                                                 | task end, CI                           | pending #4 |
+| Lint                   | Zero errors                                                                                                                          | `eslint .`                                                                              | task end, CI                           | pending #4 |
+| Format                 | Zero files differing from Prettier's output                                                                                          | `prettier --check .`                                                                    | commit (pre-commit hook), task end, CI | live       |
 
 A pending row becomes live in the PR that installs its tool, after the command has been seen to fail on a deliberate violation and pass on clean code.
 
@@ -40,11 +41,11 @@ Why these numbers:
 
 ## Where checks run
 
-| Stage | Command | Budget |
-|-------|---------|--------|
-| After each edit | `scripts/check.sh fast` | under 5 s |
-| When a task is done | `scripts/check.sh task` | under 90 s |
-| CI, on every PR | `scripts/check.sh full` (jobs in `.github/workflows/constraints.yml`) | no limit |
+| Stage               | Command                                                                                           | Budget     |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ---------- |
+| After each edit     | `scripts/check.sh fast`                                                                           | under 5 s  |
+| When a task is done | `scripts/check.sh task`                                                                           | under 90 s |
+| CI, on every PR     | `scripts/check.sh full`, plus `format` (jobs in `.github/workflows/constraints.yml` and `ci.yml`) | no limit   |
 
 Rust builds are too slow for the task stage, so Rust tests and coverage run in CI only. A check that outgrows its budget moves to a later stage; it isn't dropped.
 
@@ -52,10 +53,10 @@ Outside opinions: osv-scanner (a public vulnerability database), Semgrep's regis
 
 ## Measured, not yet enforced
 
-| Metric | Today | Direction |
-|--------|-------|-----------|
+| Metric                        | Today                                    | Direction     |
+| ----------------------------- | ---------------------------------------- | ------------- |
 | Project coverage (TypeScript) | no code yet; recorded by the scaffold PR | must not fall |
-| Project coverage (Rust) | no code yet; recorded by the scaffold PR | must not fall |
+| Project coverage (Rust)       | no code yet; recorded by the scaffold PR | must not fall |
 
 A drop of up to 0.5% is drift, not a regression.
 
@@ -63,5 +64,5 @@ A drop of up to 0.5% is drift, not a regression.
 
 Each expires within 90 days.
 
-| ID | Rule | Path | Reason | Owner | Expires |
-|----|------|------|--------|-------|---------|
+| ID  | Rule | Path | Reason | Owner | Expires |
+| --- | ---- | ---- | ------ | ----- | ------- |

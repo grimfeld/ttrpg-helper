@@ -21,7 +21,7 @@ Read `CONSTRAINTS.md` before writing code. Do not weaken it to make a change pas
 ## Commands
 
 - `scripts/check.sh fast`: floor and secrets. A hook runs it after every edit.
-- `scripts/check.sh task`: the task-end stage. The Stop hook runs it before you hand work back.
+- `scripts/check.sh task`: the fast checks plus the Prettier check. The Stop hook runs it before you hand work back. `pnpm exec prettier --write <file>` fixes formatting.
 - `scripts/check.sh full`: everything CI runs, including the dependency and code scans.
 
 Build, dev, test, lint and typecheck come with the workspace scaffold (#4).
