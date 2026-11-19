@@ -3,7 +3,7 @@
 #   scripts/check.sh fast   after each edit       (floor, secrets)               under 5 s
 #   scripts/check.sh task   when a task is done   (fast, plus tests when they exist) under 90 s
 #   scripts/check.sh full   in CI                 (task, plus dependency and code scans)
-#   scripts/check.sh floor|secrets-history|dependencies|code-scan   one CI job each
+#   scripts/check.sh floor|secrets-history|dependencies|code-scan|format   one CI job each
 # Exit 0 clean, 1 a check failed, 2 a check could not run.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 2
@@ -26,8 +26,14 @@ fast() {
   run secrets gitleaks dir . --redact --verbose --no-banner --log-level warn --ignore-gitleaks-allow
 }
 
+format_check() {
+  [ -x node_modules/.bin/prettier ] || { echo "check: prettier is not installed; run pnpm install" >&2; return 2; }
+  node_modules/.bin/prettier --check . --log-level warn
+}
+
 task() {
   fast
+  run format format_check
   # Tests, coverage, types, lint and architecture join this stage with the workspace scaffold.
 }
 
@@ -63,7 +69,8 @@ case "$stage" in
   secrets-history) need gitleaks; run secrets gitleaks git . --redact --verbose --no-banner --log-level warn --ignore-gitleaks-allow ;;
   dependencies) need osv-scanner; need node; run dependencies osv ;;
   code-scan) need semgrep; need node; run code-scan semgrep_scan ;;
-  *) echo "usage: scripts/check.sh fast|task|full|floor|secrets-history|dependencies|code-scan" >&2; exit 2 ;;
+  format) need node; run format format_check ;;
+  *) echo "usage: scripts/check.sh fast|task|full|floor|secrets-history|dependencies|code-scan|format" >&2; exit 2 ;;
 esac
 [ "$status" -eq 0 ] && echo "check: $stage clean"
 exit "$status"

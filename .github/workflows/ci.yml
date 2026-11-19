@@ -1,0 +1,29 @@
+# Build-quality checks. `format` runs today; lint, typecheck, test and build join with the
+# workspace scaffold (#4). Every job is a required check on main, so no path filters.
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push to a PR makes the previous run's result moot.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prettier
+        run: scripts/check.sh format
