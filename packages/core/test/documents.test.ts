@@ -155,3 +155,22 @@ describe("createDocumentStore", () => {
     await expect(store.read("n.json", noteDocument)).resolves.toBeUndefined();
   });
 });
+
+describe("createMemoryFileSystem", () => {
+  it("refuses to write into a folder that doesn't exist, like a disk", async () => {
+    const fileSystem = createMemoryFileSystem();
+    await expect(fileSystem.writeText("a/b.json", "x")).rejects.toThrow(
+      "a: no such folder"
+    );
+    await expect(
+      fileSystem.writeBytes("a/b.png", new Uint8Array([1]))
+    ).rejects.toThrow("a: no such folder");
+    await fileSystem.writeText("top.json", "x");
+    await expect(fileSystem.rename("top.json", "a/top.json")).rejects.toThrow(
+      "a: no such folder"
+    );
+    await fileSystem.makeDirectory("a");
+    await fileSystem.writeBytes("a/b.png", new Uint8Array([1]));
+    expect(fileSystem.binaries.get("a/b.png")).toEqual(new Uint8Array([1]));
+  });
+});

@@ -14,6 +14,7 @@ import {
 } from "@ttrpg-helper/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { testPlatform } from "./testPlatform";
 import { NOTICE_DURATION_MS } from "./notices";
 
 const user = {
@@ -27,11 +28,9 @@ const user = {
     return Promise.resolve();
   },
 };
-let ids = 0;
-const newId = () => `campaign-${String(++ids)}`;
 
 function renderApp(fileSystem: FileSystem = createMemoryFileSystem()) {
-  render(<App fileSystem={fileSystem} newId={newId} />);
+  render(<App platform={testPlatform(fileSystem)} />);
   return fileSystem;
 }
 

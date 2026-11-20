@@ -26,7 +26,23 @@ export {
   CAMPAIGN_NAME_MAX_LENGTH,
   campaignDocument,
   campaignFile,
+  campaignFolder,
   checkCampaignName,
   createCampaignRepository,
   describeError,
 } from "./campaigns";
+export {
+  type ImportResult,
+  type Media,
+  type MediaExtension,
+  type MediaIndex,
+  type MediaLibrary,
+  type MediaLibraryOptions,
+  type PickedFile,
+  createMediaLibrary,
+  mediaDocument,
+  mediaFile,
+  mediaIndexFile,
+  normaliseExtension,
+  sniffImage,
+} from "./media";

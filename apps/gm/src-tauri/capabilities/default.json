@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Tauri's core defaults, plus the fs plugin reaching only the app data folder (ADR-0005).",
+  "description": "Tauri's core defaults and the fs plugin reaching only the app data folder (ADR-0005). The image picker is an app command (src/media_import.rs) that widens no scope.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -34,6 +34,14 @@
     },
     {
       "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$APPDATA/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
       "allow": [
         {
           "path": "$APPDATA/**"

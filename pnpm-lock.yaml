@@ -232,6 +232,9 @@ importers:
 
   apps/gm:
     dependencies:
+      '@tauri-apps/api':
+        specifier: 2.12.5
+        version: 2.12.5
       '@tauri-apps/plugin-fs':
         specifier: 2.7.1
         version: 2.7.1
