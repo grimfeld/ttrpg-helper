@@ -45,9 +45,9 @@ Bookkeeping files (a conflict here needs no re-review):
 
 ## Checks
 
-Required on `main`: `floor`, `secrets`, `dependencies` and `code-scan` (`.github/workflows/constraints.yml`), `format` (`.github/workflows/ci.yml`), all defined in `CONSTRAINTS.md`, and `ship`.
+Required on `main`: `floor`, `secrets`, `dependencies` and `code-scan` (`.github/workflows/constraints.yml`), `format`, `lint`, `typecheck`, `architecture` and `test` (`.github/workflows/ci.yml`), all defined in `CONSTRAINTS.md`, and `ship`. A person adds new jobs to the `main` ruleset after the PR that creates them merges.
 
-Run locally before marking a PR ready: `scripts/check.sh full`.
+Run locally before marking a PR ready: `pnpm check` (`scripts/check.sh task`). CI also runs the dependency and code scans; `scripts/check.sh full` runs them locally when osv-scanner and Semgrep are installed.
 
 ## After merge
 
