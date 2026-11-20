@@ -1,50 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const dialog = vi.hoisted(() => ({ open: vi.fn() }));
-const fs = vi.hoisted(() => ({
-  BaseDirectory: { AppData: 14 },
-  readFile: vi.fn(),
-}));
-vi.mock("@tauri-apps/plugin-dialog", () => dialog);
-vi.mock("@tauri-apps/plugin-fs", () => fs);
+const core = vi.hoisted(() => ({ invoke: vi.fn() }));
+vi.mock("@tauri-apps/api/core", () => core);
 
 const { pickImages } = await import("./pickImages");
-const { tauriPlatform } = await import("./tauriPlatform");
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("pickImages", () => {
-  it("opens a picker for several images and reads each file when asked", async () => {
-    dialog.open.mockResolvedValue([
-      "/home/gm/maps/Map.PNG",
-      "C:\\gm\\hero.jpeg",
-    ]);
-    fs.readFile.mockResolvedValue(new Uint8Array([7]));
+  it("picks in Rust and reads each file by its index when asked", async () => {
+    core.invoke.mockResolvedValueOnce(["Map.PNG", "hero.jpeg"]);
     const files = await pickImages();
-    expect(dialog.open).toHaveBeenCalledWith({
-      multiple: true,
-      directory: false,
-      filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp"] }],
-    });
+    expect(core.invoke).toHaveBeenCalledWith("pick_images");
     expect(files.map((file) => file.name)).toEqual(["Map.PNG", "hero.jpeg"]);
-    expect(fs.readFile).not.toHaveBeenCalled();
-    expect(await files[0]?.read()).toEqual(new Uint8Array([7]));
-    expect(fs.readFile).toHaveBeenCalledWith("/home/gm/maps/Map.PNG");
+
+    core.invoke.mockResolvedValueOnce(new Uint8Array([7, 8]).buffer);
+    expect(await files[1]?.read()).toEqual(new Uint8Array([7, 8]));
+    expect(core.invoke).toHaveBeenLastCalledWith("read_picked_image", {
+      index: 1,
+    });
   });
 
   it("picks nothing when the GM cancels", async () => {
-    dialog.open.mockResolvedValue(null);
+    core.invoke.mockResolvedValueOnce([]);
     expect(await pickImages()).toEqual([]);
-  });
-});
-
-describe("tauriPlatform", () => {
-  it("makes UUIDs and SHA-256 hex digests", async () => {
-    expect(tauriPlatform.newId()).toMatch(/^[0-9a-f-]{36}$/);
-    expect(await tauriPlatform.sha256(new TextEncoder().encode("abc"))).toBe(
-      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-    );
   });
 });
