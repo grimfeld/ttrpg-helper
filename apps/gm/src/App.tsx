@@ -1,16 +1,12 @@
-import {
-  type Campaign,
-  createCampaignRepository,
-  type FileSystem,
-} from "@ttrpg-helper/core";
+import { type Campaign, createCampaignRepository } from "@ttrpg-helper/core";
 import { useMemo, useState } from "react";
 import { CampaignList } from "./CampaignList";
 import { CampaignView } from "./CampaignView";
 import { NoticesProvider, useNotify } from "./notices";
+import type { Platform } from "./platform";
 
 interface Props {
-  readonly fileSystem: FileSystem;
-  readonly newId: () => string;
+  readonly platform: Platform;
 }
 
 export function App(props: Props) {
@@ -21,17 +17,17 @@ export function App(props: Props) {
   );
 }
 
-function Screens({ fileSystem, newId }: Props) {
+function Screens({ platform }: Props) {
   const notify = useNotify();
   const repository = useMemo(
     () =>
-      createCampaignRepository(fileSystem, {
-        newId,
+      createCampaignRepository(platform.fileSystem, {
+        newId: platform.newId,
         onRecovered: ({ file }) => {
           notify(`${file} was damaged and has been restored from its backup.`);
         },
       }),
-    [fileSystem, newId, notify]
+    [platform, notify]
   );
   const [campaign, setCampaign] = useState<Campaign | null>(null);
 
@@ -39,6 +35,7 @@ function Screens({ fileSystem, newId }: Props) {
     return (
       <CampaignView
         campaign={campaign}
+        platform={platform}
         onBack={() => {
           setCampaign(null);
         }}

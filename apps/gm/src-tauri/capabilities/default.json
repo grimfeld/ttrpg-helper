@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Tauri's core defaults, plus the fs plugin reaching only the app data folder (ADR-0005).",
+  "description": "Tauri's core defaults; the fs plugin reaching only the app data folder (ADR-0005), plus the images the GM picks in the open dialog; the dialog plugin's open.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -41,6 +41,14 @@
       ]
     },
     {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        {
+          "path": "$APPDATA/**"
+        }
+      ]
+    },
+    {
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
@@ -61,6 +69,8 @@
           "path": "$APPDATA/**"
         }
       ]
-    }
+    },
+    "fs:allow-read-file",
+    "dialog:allow-open"
   ]
 }

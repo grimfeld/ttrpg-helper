@@ -1,12 +1,16 @@
-// An open Campaign. Later parts fill the area below the top bar (#13 to #16).
+// An open Campaign: the top bar, then the Scene list (left), the Scene editor (centre) and the
+// Media panel (right). Scenes come with #14, the On-air monitor with #16.
 import type { Campaign } from "@ttrpg-helper/core";
+import { MediaPanel } from "./MediaPanel";
+import type { Platform } from "./platform";
 
 interface Props {
   readonly campaign: Campaign;
+  readonly platform: Platform;
   readonly onBack: () => void;
 }
 
-export function CampaignView({ campaign, onBack }: Props) {
+export function CampaignView({ campaign, platform, onBack }: Props) {
   return (
     <div className="campaign-view">
       <header className="top-bar">
@@ -15,7 +19,11 @@ export function CampaignView({ campaign, onBack }: Props) {
         </button>
         <h1 title={campaign.name}>{campaign.name}</h1>
       </header>
-      <main className="campaign-body" />
+      <main className="campaign-body">
+        <aside className="right-column">
+          <MediaPanel campaign={campaign} platform={platform} />
+        </aside>
+      </main>
     </div>
   );
 }

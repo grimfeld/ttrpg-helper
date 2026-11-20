@@ -7,6 +7,7 @@ const plugin = vi.hoisted(() => ({
   readDir: vi.fn(),
   readTextFile: vi.fn(),
   rename: vi.fn(),
+  writeFile: vi.fn(),
   writeTextFile: vi.fn(),
 }));
 vi.mock("@tauri-apps/plugin-fs", () => plugin);
@@ -34,9 +35,15 @@ describe("tauriFileSystem", () => {
 
   it("writes, renames and makes folders inside the app data folder", async () => {
     await tauriFileSystem.writeText("a.json", "x");
+    await tauriFileSystem.writeBytes("m/a.png", new Uint8Array([1]));
     await tauriFileSystem.rename("a.json.tmp", "a.json");
     await tauriFileSystem.makeDirectory("campaigns/a");
     expect(plugin.writeTextFile).toHaveBeenCalledWith("a.json", "x", appData);
+    expect(plugin.writeFile).toHaveBeenCalledWith(
+      "m/a.png",
+      new Uint8Array([1]),
+      appData
+    );
     expect(plugin.rename).toHaveBeenCalledWith("a.json.tmp", "a.json", {
       oldPathBaseDir: 14,
       newPathBaseDir: 14,

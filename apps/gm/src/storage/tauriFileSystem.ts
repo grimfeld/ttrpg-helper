@@ -8,6 +8,7 @@ import {
   readDir,
   readTextFile,
   rename,
+  writeFile,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 
@@ -19,6 +20,7 @@ export const tauriFileSystem: FileSystem = {
     return readTextFile(path, appData);
   },
   writeText: (path, text) => writeTextFile(path, text, appData),
+  writeBytes: (path, bytes) => writeFile(path, bytes, appData),
   rename: (from, to) =>
     rename(from, to, {
       oldPathBaseDir: BaseDirectory.AppData,
