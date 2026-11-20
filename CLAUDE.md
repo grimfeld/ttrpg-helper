@@ -20,11 +20,19 @@ Read `CONSTRAINTS.md` before writing code. Do not weaken it to make a change pas
 
 ## Commands
 
-- `scripts/check.sh fast`: floor and secrets. A hook runs it after every edit.
-- `scripts/check.sh task`: the fast checks plus the Prettier check. The Stop hook runs it before you hand work back. `pnpm exec prettier --write <file>` fixes formatting.
-- `scripts/check.sh full`: everything CI runs, including the dependency and code scans.
+Root pnpm scripts (Node 22, `.node-version`):
 
-Build, dev, test, lint and typecheck come with the workspace scaffold (#4).
+- `pnpm install`: install the workspace (`apps/gm`, `apps/player`, `packages/core`).
+- `pnpm build`: build both apps' web bundles with Vite.
+- `pnpm lint`, `pnpm typecheck`, `pnpm architecture`: ESLint, `tsc -b` and dependency-cruiser, through `scripts/check.sh`.
+- `pnpm test`: Vitest across the workspace. The pre-commit hook runs it with `pnpm typecheck`.
+- `pnpm check`: `scripts/check.sh task`, below.
+
+Checks (`CONSTRAINTS.md`):
+
+- `scripts/check.sh fast`: floor and secrets. A hook runs it after every edit.
+- `scripts/check.sh task`: the fast checks plus format, lint, typecheck, architecture, and Vitest with `diff-cover` (changed lines ≥ 80% covered). The Stop hook runs it before you hand work back. `pnpm exec prettier --write <file>` fixes formatting. `diff-cover` comes from pipx, like Semgrep.
+- `scripts/check.sh full`: everything CI runs, including the dependency and code scans.
 
 ## Boundaries
 
