@@ -20,3 +20,6 @@ _Avoid_: shared, common, lib
 
 **Campaign**:
 An independent collection of Scenes and Media, prepared by the GM for one game. Nothing is shared between Campaigns.
+
+**Media**:
+An image the GM imported into a Campaign.
