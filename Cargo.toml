@@ -10,3 +10,4 @@ rust-version = "1.97"
 [workspace.dependencies]
 tauri = { version = "2.12.7", features = [] }
 tauri-build = { version = "2.7.6", features = [] }
+tauri-plugin-fs = "2.7.1"

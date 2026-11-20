@@ -15,3 +15,8 @@ _Avoid_: companion, companion app, client, player window
 **Core**:
 The domain logic and sync protocol shared by the GM app and the Player app. It runs inside either app and depends on neither.
 _Avoid_: shared, common, lib
+
+## Campaigns and Media
+
+**Campaign**:
+An independent collection of Scenes and Media, prepared by the GM for one game. Nothing is shared between Campaigns.

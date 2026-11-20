@@ -4,6 +4,7 @@
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .run(tauri::generate_context!())
         .expect("the Tauri app failed to start");
 }

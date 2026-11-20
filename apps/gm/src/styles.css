@@ -1,0 +1,168 @@
+:root {
+  color-scheme: dark;
+  --bg: #16161a;
+  --panel: #202026;
+  --line: #34343d;
+  --text: #ececf1;
+  --muted: #9a9aa6;
+  --accent: #7aa2ff;
+  --danger: #ff8a7a;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  margin: 0;
+  min-width: 1024px;
+  min-height: 640px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+input {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.home {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.app-header h1 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.campaigns {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.campaign {
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campaign.unreadable {
+  color: var(--danger);
+}
+
+.skeleton {
+  height: 36px;
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.empty {
+  color: var(--muted);
+}
+
+.new-campaign {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  background: var(--panel);
+  border-radius: 8px;
+}
+
+.field-problem {
+  margin: 0;
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.campaign-view {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.top-bar h1 {
+  font-size: 1.1rem;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notices {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.notice {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--danger);
+  border-radius: 6px;
+}
+
+.notice button {
+  padding: 0 6px;
+}
