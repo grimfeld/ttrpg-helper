@@ -2,8 +2,8 @@
 # Runs the checks in CONSTRAINTS.md. CONSTRAINTS.md is the source of truth; this mirrors it.
 #   scripts/check.sh fast   after each edit       (floor, secrets)               under 5 s
 #   scripts/check.sh task   when a task is done   (fast, format, lint, typecheck, architecture, test)  under 90 s
-#   scripts/check.sh full   in CI                 (task, plus dependency and code scans)
-#   scripts/check.sh floor|secrets-history|dependencies|code-scan|format|lint|typecheck|architecture|test
+#   scripts/check.sh full   in CI                 (task, plus rust, dependency and code scans)
+#   scripts/check.sh floor|secrets-history|dependencies|code-scan|format|lint|typecheck|architecture|test|rust
 #                                                 one CI job each
 # Exit 0 clean, 1 a check failed, 2 a check could not run.
 set -uo pipefail
@@ -27,9 +27,16 @@ fast() {
   run secrets gitleaks dir . --redact --verbose --no-banner --log-level warn --ignore-gitleaks-allow
 }
 
-format_check() {
+format_check() { # Prettier, then rustfmt
   [ -x node_modules/.bin/prettier ] || { echo "check: prettier is not installed; run pnpm install" >&2; return 2; }
-  node_modules/.bin/prettier --check . --log-level warn
+  node_modules/.bin/prettier --check . --log-level warn; local code=$?
+  rustfmt_check; local rcode=$?
+  [ "$code" -ge "$rcode" ] && return "$code"; return "$rcode"
+}
+
+rustfmt_check() {
+  command -v cargo >/dev/null && cargo fmt --version >/dev/null 2>&1 || { echo "check: cargo fmt is not installed (see rust-toolchain.toml)" >&2; return 2; }
+  cargo fmt --all --check # 1 when a file differs
 }
 
 # Each TypeScript check exits 1 on findings and 2 when its tool can't run, whatever the tool's own codes.
@@ -71,6 +78,25 @@ test_check() { # Vitest with coverage, then changed lines >= 80% covered (CONSTR
   code=$?; [ "$code" -le 1 ] && return "$code"; return 2
 }
 
+# Rust: clippy with warnings denied, then tests under cargo llvm-cov and diff-cover at 80 (CONSTRAINTS.md).
+# Each src-tauri/src/main.rs is bootstrap only and outside the coverage rule. CI only: too slow for task.
+rust_check() {
+  command -v cargo >/dev/null || { echo "check: cargo is not installed (see rust-toolchain.toml)" >&2; return 2; }
+  cargo clippy --version >/dev/null 2>&1 || { echo "check: clippy is not installed (see rust-toolchain.toml)" >&2; return 2; }
+  cargo llvm-cov --version >/dev/null 2>&1 || { echo "check: cargo-llvm-cov is not installed (cargo install cargo-llvm-cov)" >&2; return 2; }
+  command -v diff-cover >/dev/null || { echo "check: diff-cover is not installed (pipx install diff-cover)" >&2; return 2; }
+  rustfmt_check || return $?
+  cargo clippy --workspace --all-targets --locked -- -D warnings; local code=$?
+  # cargo exits 101 for a denied lint or a compile error, both findings; anything else is a failed run.
+  if [ "$code" -ne 0 ]; then [ "$code" -eq 101 ] && return 1; return 2; fi
+  mkdir -p coverage
+  cargo llvm-cov --workspace --locked --lcov --output-path coverage/rust.lcov \
+    --ignore-filename-regex '(^|/)src-tauri/src/main\.rs$'; code=$?
+  if [ "$code" -ne 0 ]; then [ "$code" -eq 101 ] && return 1; return 2; fi
+  diff-cover coverage/rust.lcov --compare-branch="$base" --include-untracked --fail-under=80
+  code=$?; [ "$code" -le 1 ] && return "$code"; return 2
+}
+
 task() {
   fast
   run format format_check
@@ -101,6 +127,7 @@ semgrep_scan() {
 
 full() {
   task
+  run rust rust_check
   need osv-scanner; need semgrep
   run dependencies osv
   run code-scan semgrep_scan
@@ -117,7 +144,8 @@ case "$stage" in
   typecheck) need node; run typecheck typecheck_check ;;
   architecture) need node; run architecture architecture_check ;;
   test) need node; run test test_check ;;
-  *) echo "usage: scripts/check.sh fast|task|full|floor|secrets-history|dependencies|code-scan|format|lint|typecheck|architecture|test" >&2; exit 2 ;;
+  rust) run rust rust_check ;;
+  *) echo "usage: scripts/check.sh fast|task|full|floor|secrets-history|dependencies|code-scan|format|lint|typecheck|architecture|test|rust" >&2; exit 2 ;;
 esac
 [ "$status" -eq 0 ] && echo "check: $stage clean"
 exit "$status"
