@@ -1,4 +1,4 @@
-# Build-quality checks: format, lint, typecheck, architecture and test (CONSTRAINTS.md).
+# Build-quality checks: format, lint, typecheck, architecture, test, rust and build (CONSTRAINTS.md).
 # Every job is a required check on main, so no path filters. Each calls scripts/check.sh so CI
 # and local runs share one definition.
 name: CI
@@ -11,6 +11,9 @@ permissions:
 
 env:
   DIFF_COVER_VERSION: 11.0.4
+  CARGO_LLVM_COV_VERSION: 0.9.1
+  # Tauri's Linux build dependencies (https://v2.tauri.app/start/prerequisites/#linux).
+  TAURI_APT_PACKAGES: libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
 # A new push to a PR makes the previous run's result moot.
 concurrency:
@@ -92,3 +95,45 @@ jobs:
         env:
           CHECK_BASE: origin/${{ github.base_ref }}
         run: scripts/check.sh test
+
+  rust:
+    name: rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - name: Tauri system packages
+        run: sudo apt-get update && sudo apt-get install -y $TAURI_APT_PACKAGES
+      - name: Rust toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2.90.6
+        with:
+          tool: cargo-llvm-cov@${{ env.CARGO_LLVM_COV_VERSION }}
+      - name: Install diff-cover
+        run: pipx install "diff-cover==${DIFF_COVER_VERSION}"
+      - name: fmt, clippy, llvm-cov, then changed lines >= 80%
+        env:
+          CHECK_BASE: origin/${{ github.base_ref }}
+        run: scripts/check.sh rust
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tauri system packages
+        run: sudo apt-get update && sudo apt-get install -y $TAURI_APT_PACKAGES
+      - name: Rust toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Compile both apps, no installers
+        run: |
+          pnpm --filter @ttrpg-helper/gm tauri build --no-bundle
+          pnpm --filter @ttrpg-helper/player tauri build --no-bundle

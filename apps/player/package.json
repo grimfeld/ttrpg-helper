@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@ttrpg-helper/core": "workspace:*",

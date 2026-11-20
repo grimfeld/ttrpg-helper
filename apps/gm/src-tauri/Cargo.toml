@@ -1,0 +1,13 @@
+[package]
+name = "ttrpg-helper-gm"
+version = "0.1.0"
+description = "TTRPG Helper GM"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true }

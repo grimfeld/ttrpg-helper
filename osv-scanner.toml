@@ -1,0 +1,19 @@
+# Dated exceptions to CONSTRAINTS.md "Security: dependencies", approved by grimfeld on #38.
+# Each matches a row of the Exceptions table in CONSTRAINTS.md. All three come from Tauri 2's
+# Linux GTK3 stack (gtk-rs 0.18). Before they expire, check for a Tauri 2.x release that moves
+# off gtk-rs 0.18, then renew or drop each one.
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0429"
+ignoreUntil = 2027-02-18
+reason = "glib 0.18.5, unsound VariantStrIter, reached via tauri -> gtk 0.18 / tao / muda -> atk -> glib (Linux only); not called by Tauri, wry, tao or gtk."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0370"
+ignoreUntil = 2027-02-18
+reason = "proc-macro-error 1.0.4, unmaintained, via glib -> glib-macros; compile time only, not in the binary."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2026-0543"
+ignoreUntil = 2027-02-18
+reason = "chrono 0.4.45, unmaintained, via tauri-utils -> serde_with; only (de)serialises Tauri's config."
