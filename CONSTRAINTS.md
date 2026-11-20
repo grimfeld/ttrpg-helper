@@ -65,5 +65,8 @@ A drop of up to 0.5% is drift, not a regression.
 
 Each expires within 90 days.
 
-| ID  | Rule | Path | Reason | Owner | Expires |
-| --- | ---- | ---- | ------ | ----- | ------- |
+| ID  | Rule                   | Path                                                            | Reason                                                                                                                       | Owner    | Expires    |
+| --- | ---------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| E1  | Security: dependencies | `Cargo.lock`: tauri → gtk 0.18 / tao / muda → atk → glib 0.18.5 | RUSTSEC-2024-0429: glib's `VariantStrIter` is unsound; Linux only, not called by Tauri, wry, tao or gtk (`osv-scanner.toml`) | grimfeld | 2027-02-18 |
+| E2  | Security: dependencies | `Cargo.lock`: glib → glib-macros → proc-macro-error 1.0.4       | RUSTSEC-2024-0370: unmaintained; compile time only, not in the binary (`osv-scanner.toml`)                                   | grimfeld | 2027-02-18 |
+| E3  | Security: dependencies | `Cargo.lock`: tauri-utils → serde_with → chrono 0.4.45          | RUSTSEC-2026-0543: unmaintained; only (de)serialises Tauri's config (`osv-scanner.toml`)                                     | grimfeld | 2027-02-18 |
