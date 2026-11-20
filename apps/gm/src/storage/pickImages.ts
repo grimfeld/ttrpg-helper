@@ -1,18 +1,13 @@
-// The image picker: Tauri's open dialog, several files at once. The dialog lets the fs plugin
-// read exactly the files the GM picked, and nothing else outside the app data folder.
+// The image picker. It runs in Rust (src-tauri/src/media_import.rs), so picking a file never
+// widens what the webview can reach: each file is read once, by its index in the latest pick.
 import type { PickedFile } from "@ttrpg-helper/core";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readFile } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
 
 export async function pickImages(): Promise<readonly PickedFile[]> {
-  const picked = await open({
-    multiple: true,
-    directory: false,
-    filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp"] }],
-  });
-  if (picked === null) return [];
-  return picked.map((path) => ({
-    name: path.split(/[\\/]/).pop() ?? path,
-    read: () => readFile(path),
+  const names = await invoke<string[]>("pick_images");
+  return names.map((name, index) => ({
+    name,
+    read: async () =>
+      new Uint8Array(await invoke<ArrayBuffer>("read_picked_image", { index })),
   }));
 }

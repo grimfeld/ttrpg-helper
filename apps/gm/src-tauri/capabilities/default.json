@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Tauri's core defaults; the fs plugin reaching only the app data folder (ADR-0005), plus the images the GM picks in the open dialog; the dialog plugin's open.",
+  "description": "Tauri's core defaults and the fs plugin reaching only the app data folder (ADR-0005). The image picker is an app command (src/media_import.rs) that widens no scope.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -69,8 +69,6 @@
           "path": "$APPDATA/**"
         }
       ]
-    },
-    "fs:allow-read-file",
-    "dialog:allow-open"
+    }
   ]
 }
