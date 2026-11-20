@@ -1,5 +1,6 @@
-# Build-quality checks. `format` runs today; lint, typecheck, test and build join with the
-# workspace scaffold (#4). Every job is a required check on main, so no path filters.
+# Build-quality checks: format, lint, typecheck, architecture and test (CONSTRAINTS.md).
+# Every job is a required check on main, so no path filters. Each calls scripts/check.sh so CI
+# and local runs share one definition.
 name: CI
 
 on:
@@ -7,6 +8,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  DIFF_COVER_VERSION: 11.0.4
 
 # A new push to a PR makes the previous run's result moot.
 concurrency:
@@ -22,8 +26,69 @@ jobs:
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Prettier
         run: scripts/check.sh format
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: ESLint
+        run: scripts/check.sh lint
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: tsc -b
+        run: scripts/check.sh typecheck
+
+  architecture:
+    name: architecture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: dependency-cruiser
+        run: scripts/check.sh architecture
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install diff-cover
+        run: pipx install "diff-cover==${DIFF_COVER_VERSION}"
+      - name: Vitest with coverage, then changed lines >= 80%
+        env:
+          CHECK_BASE: origin/${{ github.base_ref }}
+        run: scripts/check.sh test
