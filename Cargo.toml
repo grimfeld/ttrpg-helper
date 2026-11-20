@@ -1,0 +1,12 @@
+# One Cargo workspace for both Tauri shells: one Cargo.lock for osv-scanner, one shared target/.
+[workspace]
+resolver = "3"
+members = ["apps/gm/src-tauri", "apps/player/src-tauri"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.97"
+
+[workspace.dependencies]
+tauri = { version = "2.12.7", features = [] }
+tauri-build = { version = "2.7.6", features = [] }
