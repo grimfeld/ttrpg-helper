@@ -11,7 +11,7 @@ import {
   project,
   toggleBlackout,
 } from "@ttrpg-helper/core";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BroadcastView } from "./BroadcastView";
 import { MediaPanel } from "./MediaPanel";
 import { useNotify } from "./notices";
@@ -67,17 +67,23 @@ export function CampaignView({
     publish(projection);
   }, [projection, publish]);
 
+  // Activate only a Scene that exists: a deleted Selected Scene can't go on air.
   const activateSelected = () => {
     if (selected !== undefined)
       setOnAir((state) => activate(state, selected.id));
   };
+  const activateRef = useRef(activateSelected);
+  useEffect(() => {
+    activateRef.current = activateSelected;
+  });
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      // A held key repeats: one press is one Activate or one Blackout toggle.
+      if (event.repeat) return;
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
-        if (selectedId !== undefined)
-          setOnAir((state) => activate(state, selectedId));
+        activateRef.current();
         return;
       }
       const plain = !event.ctrlKey && !event.metaKey && !event.altKey;
@@ -94,7 +100,7 @@ export function CampaignView({
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [selectedId, setOnAir]);
+  }, [setOnAir]);
 
   const run = (action: () => Promise<void>, what: string) => {
     action().catch((error: unknown) => {

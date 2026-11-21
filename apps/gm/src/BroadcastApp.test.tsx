@@ -141,6 +141,51 @@ describe("Broadcast window", () => {
     expect(canvas().querySelectorAll("img")).toHaveLength(1);
   });
 
+  it("fades to black when nothing is on air any more, even out of Blackout", () => {
+    const { receiver, send } = fakeReceiver();
+    render(<BroadcastApp receiver={receiver} />);
+    const blackout = () =>
+      canvas().querySelector<HTMLElement>(".blackout")?.dataset.on;
+    expect(blackout()).toBe("true");
+    send(onAir(1, 1, "Tavern", true));
+    expect(blackout()).toBe("true");
+    // Going home: nothing on air, Blackout cleared. The black stays over the old picture.
+    send({ revision: 2, blackout: false, scene: null });
+    expect(blackout()).toBe("true");
+    send(onAir(3, 2, "Next"));
+    expect(blackout()).toBe("false");
+  });
+
+  it("gives an image that replaces a failed one in the same slot a fresh start", () => {
+    const { receiver, send } = fakeReceiver();
+    render(<BroadcastApp receiver={receiver} />);
+    const twoBackgrounds = (
+      revision: number,
+      urls: string[]
+    ): BroadcastProjection => ({
+      revision,
+      blackout: false,
+      scene: {
+        take: 1,
+        title: "",
+        backgrounds: urls.map((url) => ({ url, fit: "cover" })),
+        overlays: [],
+      },
+    });
+    send(twoBackgrounds(1, ["asset://gone.png", "asset://map.png"]));
+    const [gone] = canvas().querySelectorAll("img");
+    if (gone === undefined) throw new Error("no image");
+    fireEvent.error(gone);
+    expect(canvas().querySelectorAll("img")).toHaveLength(1);
+    // The GM hides the missing one: map.png moves into its slot and must still show.
+    send(twoBackgrounds(2, ["asset://map.png"]));
+    expect(
+      [...canvas().querySelectorAll("img")].map((img) =>
+        img.getAttribute("src")
+      )
+    ).toEqual(["asset://map.png"]);
+  });
+
   it("asks to leave fullscreen on Esc", () => {
     const { receiver } = fakeReceiver();
     render(<BroadcastApp receiver={receiver} />);

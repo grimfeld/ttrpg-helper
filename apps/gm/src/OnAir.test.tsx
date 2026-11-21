@@ -115,6 +115,30 @@ describe("On air", () => {
     expect(scenes().getByText("Active")).toBeDefined();
   });
 
+  it("doesn't put a deleted Selected Scene on air with Ctrl+Enter", async () => {
+    const platform = await setUp();
+    fireEvent.click(editor().getByRole("button", { name: "Activate" }));
+    await waitFor(() => {
+      expect(last(platform)?.scene?.take).toBe(1);
+    });
+    fireEvent.click(scenes().getByRole("button", { name: /^Scene 2/ }));
+    fireEvent.click(editor().getByRole("button", { name: "Delete Scene" }));
+    fireEvent.click(editor().getByRole("button", { name: "Delete" }));
+    await screen.findByText("Create a Scene or select one to edit it.");
+    fireEvent.keyDown(window, { key: "Enter", ctrlKey: true });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(last(platform)?.scene?.take).toBe(1);
+    expect(scenes().getByText("Active")).toBeDefined();
+  });
+
+  it("ignores a held key's repeats", async () => {
+    const platform = await setUp();
+    fireEvent.keyDown(window, { key: "b", repeat: true });
+    fireEvent.keyDown(window, { key: "Enter", ctrlKey: true, repeat: true });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(last(platform)).toMatchObject({ blackout: false, scene: null });
+  });
+
   it("toggles Blackout with the button and with B, but not while typing", async () => {
     const platform = await setUp();
     const button = screen.getByRole("button", { name: "Blackout" });

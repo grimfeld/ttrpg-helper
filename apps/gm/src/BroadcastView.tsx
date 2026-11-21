@@ -46,9 +46,13 @@ export function BroadcastView({ projection }: Props) {
         {current !== null && (
           <Take key={`take-${String(current.take)}`} scene={current} fadeIn />
         )}
+        {/* Black covers the picture on Blackout, and fades in when nothing is on air, so
+            going off air is a fade to black, never a cut. */}
         <div
           className="blackout"
-          data-on={projection?.blackout === true ? "true" : "false"}
+          data-on={
+            projection?.blackout === true || scene === null ? "true" : "false"
+          }
           style={{ transitionDuration: `${String(CROSSFADE_MS)}ms` }}
         />
       </div>
@@ -70,14 +74,14 @@ function Take({
     <div className={fadeIn ? "take fade-in" : "take"} style={style}>
       {scene.backgrounds.map((background, index) => (
         <BroadcastImage
-          key={`b${String(index)}`}
+          key={`b${String(index)}:${background.url}`}
           url={background.url}
           rect={(size) => fitRect(size, background.fit)}
         />
       ))}
       {scene.overlays.map((overlay, index) => (
         <BroadcastImage
-          key={`o${String(index)}`}
+          key={`o${String(index)}:${overlay.url}`}
           url={overlay.url}
           rect={(size) => overlayRect(overlay, size)}
         />
