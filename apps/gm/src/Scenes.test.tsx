@@ -3,9 +3,14 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
-import { createMemoryFileSystem, type FileSystem } from "@ttrpg-helper/core";
+import {
+  createMemoryFileSystem,
+  type FileSystem,
+  type MemoryFileSystem,
+} from "@ttrpg-helper/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
 import {
@@ -40,6 +45,19 @@ async function reopen(fileSystem: FileSystem) {
   render(<App platform={testPlatform(fileSystem)} />);
   fireEvent.click(await screen.findByRole("button", { name: "Keep" }));
   return within(await screen.findByRole("region", { name: "Scenes" }));
+}
+
+/** The Scenes stored in the only Campaign's scenes.json. */
+function storedScenes(
+  fileSystem: MemoryFileSystem
+): { name: string; title: string }[] {
+  const file = [...fileSystem.files.keys()].find((path) =>
+    path.endsWith("/scenes.json")
+  );
+  const text = file === undefined ? undefined : fileSystem.files.get(file);
+  if (text === undefined) return [];
+  return (JSON.parse(text) as { scenes: { name: string; title: string }[] })
+    .scenes;
 }
 
 function editor() {
@@ -94,7 +112,13 @@ describe("Scene list", () => {
     rename("Scene name", "  The Tavern ");
     rename("Scene title", "Night falls");
     expect(scenes.getByRole("button", { name: "The Tavern" })).toBeDefined();
-    await screen.findByText("The Tavern");
+    // What is stored is trimmed.
+    await waitFor(() => {
+      expect(storedScenes(fileSystem)[0]).toMatchObject({
+        name: "The Tavern",
+        title: "Night falls",
+      });
+    });
 
     const again = await reopen(fileSystem);
     fireEvent.click(await again.findByRole("button", { name: "The Tavern" }));
@@ -104,7 +128,8 @@ describe("Scene list", () => {
   });
 
   it("says why a name or title can't be saved, and keeps the old one", async () => {
-    const scenes = await openCampaign(testPlatform());
+    const fileSystem = createMemoryFileSystem();
+    const scenes = await openCampaign(testPlatform(fileSystem));
     fireEvent.click(scenes.getByRole("button", { name: "New Scene" }));
     rename("Scene name", "   ");
     expect(editor().getByText("Give the Scene a name.")).toBeDefined();
@@ -113,6 +138,12 @@ describe("Scene list", () => {
     rename("Scene title", "t".repeat(121));
     expect(editor().getByText("Use at most 120 characters.")).toBeDefined();
     expect(scenes.getByRole("button", { name: "Scene 1" })).toBeDefined();
+    await waitFor(() => {
+      expect(storedScenes(fileSystem)[0]).toMatchObject({
+        name: "Scene 1",
+        title: "",
+      });
+    });
   });
 
   it("saves a name on Enter", async () => {
@@ -171,6 +202,10 @@ describe("Scene list", () => {
         /Couldn't read the Scenes: campaigns\/c\/scenes.json is damaged/
       )
     ).toBeDefined();
+    // Nothing can be edited, so nothing can overwrite the damaged file.
+    expect(screen.queryByRole("region", { name: "Scenes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "New Scene" })).toBeNull();
+    expect(fileSystem.files.get("campaigns/c/scenes.json")).toBe("{");
   });
 });
 
