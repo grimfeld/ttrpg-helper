@@ -6,7 +6,7 @@ import {
   describeError,
   type Scene,
 } from "@ttrpg-helper/core";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNotify } from "./notices";
 import type { Platform } from "./platform";
 
@@ -30,12 +30,16 @@ export function useScenes(campaign: Campaign, platform: Platform): ScenesState {
     [campaign.id, platform, notify]
   );
   const [scenes, setScenes] = useState<readonly Scene[] | undefined>(undefined);
+  // The latest list, so an edit made later (on a drag's release) never starts from an old one.
+  const latest = useRef<readonly Scene[] | undefined>(undefined);
 
   useEffect(() => {
     let current = true;
     store.load().then(
       (loaded) => {
-        if (current) setScenes(loaded);
+        if (!current) return;
+        latest.current = loaded;
+        setScenes(loaded);
       },
       (error: unknown) => {
         if (current)
@@ -49,14 +53,15 @@ export function useScenes(campaign: Campaign, platform: Platform): ScenesState {
 
   const apply = useCallback(
     (edit: ScenesEdit) => {
-      if (scenes === undefined) return;
-      const next = edit(scenes);
+      if (latest.current === undefined) return;
+      const next = edit(latest.current);
+      latest.current = next;
       setScenes(next);
       store.save(next).catch((error: unknown) => {
         notify(`Couldn't save the Scenes: ${describeError(error)}`);
       });
     },
-    [scenes, store, notify]
+    [store, notify]
   );
 
   return { scenes, apply };

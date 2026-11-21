@@ -15,12 +15,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { JPG, PNG, picked, testPlatform } from "./testPlatform";
 
-// The canvas is 800×450 px in these tests.
+// The canvas is 800×450 px in these tests; any other element is 100×100, so measuring the
+// wrong one shows.
 beforeEach(() => {
-  vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
-    DOMRect.fromRect({ x: 0, y: 0, width: 800, height: 450 })
+  vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+    function (this: Element) {
+      return this.classList.contains("canvas")
+        ? DOMRect.fromRect({ x: 0, y: 0, width: 800, height: 450 })
+        : DOMRect.fromRect({ x: 0, y: 0, width: 100, height: 100 });
+    }
   );
 });
+
+/** Lets pending saves land, so a check that nothing was saved means something. */
+const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -83,7 +91,7 @@ describe("Overlays", () => {
     addOverlay("token.png");
     await editor().findByRole("img", { name: "letter.jpg" });
     const box = editor().getByLabelText("Overlay token.png");
-    expect(box.className).toBe("placement hidden");
+    expect(box.className).toBe("placement hidden overlay");
     expect(overlayRows().getByRole("button", { name: "Show" })).toBeDefined();
     const canvas = editor().getByLabelText("Canvas");
     expect(
@@ -130,11 +138,11 @@ describe("Overlays", () => {
     addOverlay("token.png");
     fireEvent.click(overlayRows().getByRole("button", { name: "Show" }));
     expect(editor().getByLabelText("Overlay token.png").className).toBe(
-      "placement"
+      "placement overlay"
     );
     fireEvent.click(overlayRows().getByRole("button", { name: "Hide" }));
     expect(editor().getByLabelText("Overlay token.png").className).toBe(
-      "placement hidden"
+      "placement hidden overlay"
     );
     fireEvent.click(
       overlayRows().getByRole("button", { name: "Remove token.png" })
@@ -165,6 +173,7 @@ describe("Overlays", () => {
     fireEvent.mouseDown(box, { button: 0, clientX: 400, clientY: 225 });
     expect(box.getAttribute("data-gesture")).toBe("move");
     fireEvent.mouseMove(window, { clientX: 480, clientY: 270 });
+    await settle();
     expect(storedOverlays(fileSystem)[0]?.position).toEqual({ x: 0.5, y: 0.5 });
     fireEvent.mouseUp(window, { clientX: 480, clientY: 270 });
 
@@ -174,6 +183,66 @@ describe("Overlays", () => {
       expect(position?.y).toBeCloseTo(0.6);
     });
     expect(box.getAttribute("data-gesture")).toBeNull();
+  });
+
+  it("moves an Overlay along one axis", async () => {
+    const fileSystem = createMemoryFileSystem();
+    await sceneWithImages(fileSystem);
+    addOverlay("token.png");
+    const box = editor().getByLabelText("Overlay token.png");
+    fireEvent.mouseDown(box, { button: 0, clientX: 400, clientY: 225 });
+    fireEvent.mouseUp(window, { clientX: 320, clientY: 225 });
+    await waitFor(() => {
+      const position = storedOverlays(fileSystem)[0]?.position;
+      expect(position?.x).toBeCloseTo(0.4);
+      expect(position?.y).toBe(0.5);
+    });
+  });
+
+  it("cancels a drag on Escape, and ends it if the Overlay goes away", async () => {
+    const fileSystem = createMemoryFileSystem();
+    await sceneWithImages(fileSystem);
+    addOverlay("token.png");
+    fireEvent.click(overlayRows().getByRole("button", { name: "Show" }));
+    await waitFor(() => {
+      expect(storedOverlays(fileSystem)[0]?.visible).toBe(true);
+    });
+    const box = editor().getByLabelText("Overlay token.png");
+    fireEvent.mouseDown(box, { button: 0, clientX: 400, clientY: 225 });
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(box.getAttribute("data-gesture")).toBeNull();
+    fireEvent.mouseUp(window, { clientX: 600, clientY: 300 });
+    await settle();
+    expect(storedOverlays(fileSystem)[0]?.position).toEqual({ x: 0.5, y: 0.5 });
+
+    // A press, then the Overlay is removed before the release: nothing comes back.
+    fireEvent.mouseDown(editor().getByLabelText("Overlay token.png"), {
+      button: 0,
+      clientX: 400,
+      clientY: 225,
+    });
+    fireEvent.click(
+      overlayRows().getByRole("button", { name: "Remove token.png" })
+    );
+    fireEvent.mouseUp(window, { clientX: 600, clientY: 300 });
+    await settle();
+    expect(storedOverlays(fileSystem)).toEqual([]);
+  });
+
+  it("keeps edits made during a drag when the drag is released", async () => {
+    const fileSystem = createMemoryFileSystem();
+    await sceneWithImages(fileSystem);
+    addOverlay("token.png");
+    const box = editor().getByLabelText("Overlay token.png");
+    fireEvent.mouseDown(box, { button: 0, clientX: 400, clientY: 225 });
+    // Another edit lands before the release (here, by keyboard on the list).
+    fireEvent.click(overlayRows().getByRole("button", { name: "Show" }));
+    fireEvent.mouseUp(window, { clientX: 480, clientY: 225 });
+    await waitFor(() => {
+      const stored = storedOverlays(fileSystem)[0];
+      expect(stored?.position.x).toBeCloseTo(0.6);
+      expect(stored?.visible).toBe(true);
+    });
   });
 
   it("keeps a dragged Overlay's centre on the canvas", async () => {
@@ -218,6 +287,7 @@ describe("Overlays", () => {
     fireEvent.mouseDown(box, { button: 2, clientX: 400, clientY: 225 });
     expect(box.getAttribute("data-gesture")).toBeNull();
     fireEvent.mouseUp(window, { clientX: 600, clientY: 300 });
+    await settle();
     expect(
       fileSystem.files.get(
         [...fileSystem.files.keys()].find((p) => p.endsWith("/scenes.json")) ??
@@ -244,7 +314,7 @@ describe("Overlays", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Keep" }));
     fireEvent.click(await screen.findByRole("button", { name: "Scene 1" }));
     const again = editor().getByLabelText("Overlay token.png");
-    expect(again.className).toBe("placement");
+    expect(again.className).toBe("placement overlay");
     expect(again.style.left).not.toBe("");
   });
 });
