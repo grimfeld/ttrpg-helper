@@ -22,6 +22,7 @@ export function testPlatform(
     sha256: webCryptoSha256,
     nextPick: [],
     pickImages: () => Promise.resolve(platform.nextPick),
+    mediaUrl: (path) => Promise.resolve(`test-asset://${path}`),
   };
   return platform;
 }

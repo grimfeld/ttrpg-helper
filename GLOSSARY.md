@@ -23,3 +23,21 @@ An independent collection of Scenes and Media, prepared by the GM for one game. 
 
 **Media**:
 An image the GM imported into a Campaign.
+
+## Scenes
+
+**Scene**:
+A saved composition of Backgrounds and Overlays, with an optional Scene title.
+
+**Background**:
+A full-canvas image placement, always below every Overlay. Several can be stacked.
+
+**Hidden**:
+Placed in a Scene but not shown to players. New placements start Hidden.
+_Avoid_: invisible, off
+
+**Scene title**:
+An optional title shown to players, separate from the Scene's private name.
+
+**Selected Scene**:
+The Scene open in the editor. It may or may not be the Active Scene.

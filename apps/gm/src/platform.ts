@@ -9,6 +9,8 @@ export interface Platform {
   readonly sha256: (bytes: Uint8Array) => Promise<string>;
   /** Opens the image file picker; empty when the GM cancels. */
   readonly pickImages: () => Promise<readonly PickedFile[]>;
+  /** A URL the webview can show for a file in the app data folder (the asset protocol). */
+  readonly mediaUrl: (path: string) => Promise<string>;
 }
 
 /** SHA-256 with Web Crypto, as lower-case hex. */
