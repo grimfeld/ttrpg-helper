@@ -31,3 +31,26 @@ export function fitRect(
   const height = matchHeight ? 1 : CANVAS_ASPECT / imageAspect;
   return { left: (1 - width) / 2, top: (1 - height) / 2, width, height };
 }
+
+/**
+ * Where an Overlay sits on the canvas: its centre and its height as fractions of the canvas,
+ * and its width from the image's aspect ratio.
+ */
+export function overlayRect(
+  overlay: {
+    readonly position: { readonly x: number; readonly y: number };
+    readonly height: number;
+  },
+  image: { readonly width: number; readonly height: number }
+): CanvasRect {
+  const imageAspect =
+    image.width > 0 && image.height > 0 ? image.width / image.height : 1;
+  const height = overlay.height;
+  const width = (height * imageAspect) / CANVAS_ASPECT;
+  return {
+    left: overlay.position.x - width / 2,
+    top: overlay.position.y - height / 2,
+    width,
+    height,
+  };
+}

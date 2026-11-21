@@ -156,6 +156,89 @@ export const removeBackground =
     ),
   });
 
+// Overlays --------------------------------------------------------------------------------
+
+/** The smallest Overlay, as a fraction of the canvas height. */
+export const OVERLAY_MIN_HEIGHT = 0.02;
+/** Where a new Overlay lands: centred, a third of the canvas high. */
+export const NEW_OVERLAY = {
+  position: { x: 0.5, y: 0.5 },
+  height: 1 / 3,
+} as const;
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+/** Places a Media as the top Overlay, Hidden, centred. */
+export const addOverlay =
+  (id: string, mediaId: string) =>
+  (scene: Scene): Scene => ({
+    ...scene,
+    overlays: [
+      ...scene.overlays,
+      {
+        id,
+        mediaId,
+        position: { ...NEW_OVERLAY.position },
+        height: NEW_OVERLAY.height,
+        visible: false,
+      },
+    ],
+  });
+
+const editOverlay =
+  (overlayId: string, edit: (overlay: Overlay) => Overlay) =>
+  (scene: Scene): Scene => ({
+    ...scene,
+    overlays: scene.overlays.map((overlay) =>
+      overlay.id === overlayId ? edit(overlay) : overlay
+    ),
+  });
+
+/** Moves an Overlay's centre, kept on the canvas. */
+export const moveOverlay = (overlayId: string, x: number, y: number) =>
+  editOverlay(overlayId, (overlay) => ({
+    ...overlay,
+    position: { x: clamp(x, 0, 1), y: clamp(y, 0, 1) },
+  }));
+
+/** Resizes an Overlay around its centre, between OVERLAY_MIN_HEIGHT and the canvas height. */
+export const resizeOverlay = (overlayId: string, height: number) =>
+  editOverlay(overlayId, (overlay) => ({
+    ...overlay,
+    height: clamp(height, OVERLAY_MIN_HEIGHT, 1),
+  }));
+
+export const setOverlayVisible = (overlayId: string, visible: boolean) =>
+  editOverlay(overlayId, (overlay) => ({ ...overlay, visible }));
+
+export const removeOverlay =
+  (overlayId: string) =>
+  (scene: Scene): Scene => ({
+    ...scene,
+    overlays: scene.overlays.filter((overlay) => overlay.id !== overlayId),
+  });
+
+/**
+ * Moves an Overlay one step in the stack: "up" draws it above the next one, "down" below the
+ * previous one. At either end it stays where it is.
+ */
+export const reorderOverlay =
+  (overlayId: string, direction: "up" | "down") =>
+  (scene: Scene): Scene => {
+    const from = scene.overlays.findIndex(
+      (overlay) => overlay.id === overlayId
+    );
+    const to = direction === "up" ? from + 1 : from - 1;
+    const moving = scene.overlays[from];
+    const other = scene.overlays[to];
+    if (moving === undefined || other === undefined) return scene;
+    const overlays = [...scene.overlays];
+    overlays[from] = other;
+    overlays[to] = moving;
+    return { ...scene, overlays };
+  };
+
 // --- Storage -----------------------------------------------------------------------------
 
 const isFraction = (value: unknown): value is number =>

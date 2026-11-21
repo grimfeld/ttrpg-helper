@@ -46,7 +46,13 @@ export {
   normaliseExtension,
   sniffImage,
 } from "./media";
-export { type CanvasRect, type Fit, CANVAS_ASPECT, fitRect } from "./canvas";
+export {
+  type CanvasRect,
+  type Fit,
+  CANVAS_ASPECT,
+  fitRect,
+  overlayRect,
+} from "./canvas";
 export {
   type Background,
   type Overlay,
@@ -54,9 +60,17 @@ export {
   type SceneList,
   type SceneStore,
   type TextCheck,
+  NEW_OVERLAY,
+  OVERLAY_MIN_HEIGHT,
   SCENE_NAME_MAX_LENGTH,
   SCENE_TITLE_MAX_LENGTH,
   addBackground,
+  addOverlay,
+  moveOverlay,
+  removeOverlay,
+  reorderOverlay,
+  resizeOverlay,
+  setOverlayVisible,
   checkSceneName,
   checkSceneTitle,
   createScene,

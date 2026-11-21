@@ -264,6 +264,42 @@ img.placement {
   inset: auto;
 }
 
+/* An Overlay is a box positioned on the canvas; its image fills it. */
+.placement.overlay {
+  inset: auto;
+}
+
+div.placement img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.placements.overlays li {
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+}
+
+.placement.overlay {
+  cursor: grab;
+  outline: 1px dashed rgba(255, 255, 255, 0.35);
+}
+
+.placement[data-gesture="move"] {
+  cursor: grabbing;
+}
+
+.resize-handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border: 1px solid #000;
+  border-radius: 2px;
+  cursor: nwse-resize;
+}
+
 .placement.hidden {
   opacity: 0.35;
 }

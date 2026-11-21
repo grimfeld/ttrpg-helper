@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   addBackground,
+  addOverlay,
+  moveOverlay,
+  OVERLAY_MIN_HEIGHT,
+  overlayRect,
+  removeOverlay,
+  reorderOverlay,
+  resizeOverlay,
+  setOverlayVisible,
   checkSceneName,
   checkSceneTitle,
   createMemoryFileSystem,
@@ -251,5 +259,98 @@ describe("createSceneStore", () => {
       ],
     });
     expect(await createSceneStore(fileSystem, "c1").load()).toEqual(scenes);
+  });
+});
+
+describe("Overlay edits", () => {
+  const withTwo = () => addOverlay("o2", "m2")(addOverlay("o1", "m1")(scene()));
+
+  it("places a Media as the top Overlay, Hidden and centred", () => {
+    expect(withTwo().overlays).toEqual([
+      {
+        id: "o1",
+        mediaId: "m1",
+        position: { x: 0.5, y: 0.5 },
+        height: 1 / 3,
+        visible: false,
+      },
+      {
+        id: "o2",
+        mediaId: "m2",
+        position: { x: 0.5, y: 0.5 },
+        height: 1 / 3,
+        visible: false,
+      },
+    ]);
+  });
+
+  it("moves an Overlay's centre and keeps it on the canvas", () => {
+    expect(
+      moveOverlay("o1", 0.25, 0.75)(withTwo()).overlays[0]?.position
+    ).toEqual({ x: 0.25, y: 0.75 });
+    expect(
+      moveOverlay("o1", -0.5, 1.4)(withTwo()).overlays[0]?.position
+    ).toEqual({ x: 0, y: 1 });
+    expect(moveOverlay("o1", 0.1, 0.1)(withTwo()).overlays[1]).toEqual(
+      withTwo().overlays[1]
+    );
+  });
+
+  it("resizes an Overlay between the minimum and the canvas height", () => {
+    expect(resizeOverlay("o1", 0.5)(withTwo()).overlays[0]?.height).toBe(0.5);
+    expect(resizeOverlay("o1", 3)(withTwo()).overlays[0]?.height).toBe(1);
+    expect(resizeOverlay("o1", -1)(withTwo()).overlays[0]?.height).toBe(
+      OVERLAY_MIN_HEIGHT
+    );
+  });
+
+  it("shows, hides and removes one Overlay", () => {
+    const shown = setOverlayVisible("o2", true)(withTwo());
+    expect(shown.overlays.map((o) => o.visible)).toEqual([false, true]);
+    expect(removeOverlay("o1")(shown).overlays.map((o) => o.id)).toEqual([
+      "o2",
+    ]);
+  });
+
+  it("moves an Overlay up or down the stack, and not past either end", () => {
+    const ids = (s: Scene) => s.overlays.map((o) => o.id);
+    expect(ids(reorderOverlay("o1", "up")(withTwo()))).toEqual(["o2", "o1"]);
+    expect(ids(reorderOverlay("o2", "down")(withTwo()))).toEqual(["o2", "o1"]);
+    expect(ids(reorderOverlay("o2", "up")(withTwo()))).toEqual(["o1", "o2"]);
+    expect(ids(reorderOverlay("o1", "down")(withTwo()))).toEqual(["o1", "o2"]);
+    expect(ids(reorderOverlay("nope", "up")(withTwo()))).toEqual(["o1", "o2"]);
+  });
+
+  it("saves Overlays in scenes.json and reads them back", () => {
+    const text = JSON.stringify({
+      schemaVersion: 1,
+      scenes: [moveOverlay("o1", 0.2, 0.3)(withTwo())],
+    });
+    const decoded = decodeDocument(text, scenesDocument);
+    expect(
+      decoded.status === "ok" && decoded.value.scenes[0]?.overlays[0]?.position
+    ).toEqual({ x: 0.2, y: 0.3 });
+  });
+});
+
+describe("overlayRect", () => {
+  it("sizes an Overlay from its height and the image's aspect, around its centre", () => {
+    const rect = overlayRect(
+      { position: { x: 0.5, y: 0.5 }, height: 0.5 },
+      { width: 200, height: 100 }
+    );
+    expect(rect.height).toBe(0.5);
+    expect(rect.width).toBeCloseTo((0.5 * 2) / (16 / 9));
+    expect(rect.left).toBeCloseTo(0.5 - rect.width / 2);
+    expect(rect.top).toBe(0.25);
+  });
+
+  it("treats an image with no size yet as square", () => {
+    expect(
+      overlayRect(
+        { position: { x: 0, y: 0 }, height: 0.4 },
+        { width: 0, height: 0 }
+      ).width
+    ).toBeCloseTo(0.4 / (16 / 9));
   });
 });
