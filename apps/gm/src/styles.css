@@ -173,8 +173,150 @@ input[aria-invalid="true"] {
 
 .campaign-body {
   display: grid;
-  grid-template-columns: 240px 1fr 300px;
+  grid-template-columns: 240px minmax(0, 1fr) 300px;
+  /* One row bounded by the window, so each column scrolls on its own. */
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
+}
+
+.left-column {
+  border-right: 1px solid var(--line);
+  padding: 12px;
+  overflow: auto;
+}
+
+.centre-column {
+  padding: 16px;
+  overflow: auto;
+}
+
+.prompt {
+  text-align: center;
+  margin-top: 30vh;
+}
+
+.scene-list ul,
+.placements,
+.media-picker {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.scene-row,
+.media-picker button {
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scene-row[aria-current="true"] {
+  border-color: var(--accent);
+  background: #26304a;
+}
+
+.scene-fields {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 200px;
+}
+
+.confirm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+button.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.canvas {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  margin: 16px 0;
+  background: #000;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.placement {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+img.placement {
+  inset: auto;
+}
+
+.placement.hidden {
+  opacity: 0.35;
+}
+
+.placement.missing {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: repeating-linear-gradient(
+    45deg,
+    #1d1d22 0 12px,
+    #26262d 12px 24px
+  );
+}
+
+.placements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.placements-header h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.placements li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  background: var(--panel);
+  border-radius: 4px;
+}
+
+.placements li.hidden .placement-name {
+  opacity: 0.5;
+}
+
+.placement-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px;
 }
 
 .right-column {

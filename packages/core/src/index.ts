@@ -46,3 +46,28 @@ export {
   normaliseExtension,
   sniffImage,
 } from "./media";
+export { type CanvasRect, type Fit, CANVAS_ASPECT, fitRect } from "./canvas";
+export {
+  type Background,
+  type Overlay,
+  type Scene,
+  type SceneList,
+  type SceneStore,
+  type TextCheck,
+  SCENE_NAME_MAX_LENGTH,
+  SCENE_TITLE_MAX_LENGTH,
+  addBackground,
+  checkSceneName,
+  checkSceneTitle,
+  createScene,
+  createSceneStore,
+  deleteScene,
+  removeBackground,
+  renameScene,
+  scenesDocument,
+  scenesFile,
+  setBackgroundFit,
+  setBackgroundVisible,
+  setSceneTitle,
+  updateScene,
+} from "./scenes";
