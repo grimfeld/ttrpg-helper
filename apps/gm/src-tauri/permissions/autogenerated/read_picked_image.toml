@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-picked-image"
+description = "Enables the read_picked_image command without any pre-configured scope."
+commands.allow = ["read_picked_image"]
+
+[[permission]]
+identifier = "deny-read-picked-image"
+description = "Denies the read_picked_image command without any pre-configured scope."
+commands.deny = ["read_picked_image"]

@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "broadcast",
+  "description": "The Broadcast window: it only receives the Broadcast projection, and can ask the main window for it or to leave fullscreen (ADR-0006).",
+  "windows": ["broadcast"],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit-to"
+  ]
+}

@@ -85,3 +85,19 @@ export {
   setSceneTitle,
   updateScene,
 } from "./scenes";
+export {
+  type BroadcastProjection,
+  type OnAir,
+  type ProjectedBackground,
+  type ProjectedOverlay,
+  type ProjectedScene,
+  CROSSFADE_MS,
+  activate,
+  isNewer,
+  leaveCampaign,
+  nextProjection,
+  offAir,
+  parseProjection,
+  project,
+  toggleBlackout,
+} from "./onAir";

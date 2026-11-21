@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Tauri's core defaults and the fs plugin reaching only the app data folder (ADR-0005). The image picker is an app command (src/media_import.rs) that widens no scope.",
+  "description": "The main window: Tauri's core defaults, the fs plugin reaching only the app data folder (ADR-0005), the image picker app commands, and opening, focusing and fullscreening the Broadcast window (ADR-0006).",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -69,6 +69,11 @@
           "path": "$APPDATA/**"
         }
       ]
-    }
+    },
+    "allow-pick-images",
+    "allow-read-picked-image",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-set-focus"
   ]
 }

@@ -4,11 +4,18 @@ import type { Scene } from "@ttrpg-helper/core";
 interface Props {
   readonly scenes: readonly Scene[];
   readonly selectedId: string | undefined;
+  readonly activeId: string | null;
   readonly onSelect: (sceneId: string) => void;
   readonly onNew: () => void;
 }
 
-export function SceneList({ scenes, selectedId, onSelect, onNew }: Props) {
+export function SceneList({
+  scenes,
+  selectedId,
+  activeId,
+  onSelect,
+  onNew,
+}: Props) {
   return (
     <section className="scene-list" aria-label="Scenes">
       <header className="panel-header">
@@ -32,7 +39,12 @@ export function SceneList({ scenes, selectedId, onSelect, onNew }: Props) {
                   onSelect(scene.id);
                 }}
               >
-                {scene.name}
+                <span className="scene-row-name">{scene.name}</span>
+                {scene.id === activeId && (
+                  <span className="on-air-mark" title="This Scene is on air">
+                    Active
+                  </span>
+                )}
               </button>
             </li>
           ))}
