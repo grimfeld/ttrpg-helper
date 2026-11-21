@@ -41,3 +41,6 @@ An optional title shown to players, separate from the Scene's private name.
 
 **Selected Scene**:
 The Scene open in the editor. It may or may not be the Active Scene.
+
+**Overlay**:
+An image placement positioned and sized freely, above the Backgrounds.
