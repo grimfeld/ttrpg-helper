@@ -99,7 +99,7 @@ export function SceneImage({
   return (
     <div
       {...boxProps}
-      className={missing ? `${className} missing` : className}
+      className={`${className} overlay${missing ? " missing" : ""}`}
       style={rectStyle(layout(size))}
     >
       {missing ? placeholder : image}

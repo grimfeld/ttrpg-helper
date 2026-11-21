@@ -265,7 +265,7 @@ img.placement {
 }
 
 /* An Overlay is a box positioned on the canvas; its image fills it. */
-div.placement[aria-label^="Overlay"] {
+.placement.overlay {
   inset: auto;
 }
 
@@ -279,7 +279,7 @@ div.placement img {
   grid-template-columns: minmax(0, 1fr) auto auto auto auto;
 }
 
-.placement[aria-label^="Overlay"] {
+.placement.overlay {
   cursor: grab;
   outline: 1px dashed rgba(255, 255, 255, 0.35);
 }
