@@ -264,8 +264,8 @@ img.placement {
   inset: auto;
 }
 
-/* A placement is a box positioned on the canvas; its image fills it. */
-div.placement {
+/* An Overlay is a box positioned on the canvas; its image fills it. */
+div.placement[aria-label^="Overlay"] {
   inset: auto;
 }
 
@@ -275,11 +275,7 @@ div.placement img {
   height: 100%;
 }
 
-.placement.missing {
-  inset: auto;
-}
-
-.overlays li {
+.placements.overlays li {
   grid-template-columns: minmax(0, 1fr) auto auto auto auto;
 }
 

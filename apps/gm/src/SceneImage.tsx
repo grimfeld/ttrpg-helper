@@ -61,37 +61,48 @@ export function SceneImage({
   }, [campaignId, media, platform]);
 
   const missing = media === undefined || failed;
-  const className = [
-    "placement",
-    hidden ? "hidden" : "",
-    missing ? "missing" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const className = hidden ? "placement hidden" : "placement";
+  const placeholder = (
+    <span role="img" aria-label="Missing image">
+      Missing image
+    </span>
+  );
+  const image =
+    url === undefined || media === undefined ? null : (
+      <img
+        className={boxProps === undefined ? className : undefined}
+        style={boxProps === undefined ? rectStyle(layout(size)) : undefined}
+        src={url}
+        alt={media.originalName}
+        draggable={false}
+        onLoad={(event) => {
+          setSize({
+            width: event.currentTarget.naturalWidth,
+            height: event.currentTarget.naturalHeight,
+          });
+        }}
+        onError={() => {
+          setFailed(true);
+        }}
+      />
+    );
+
+  // A Background is the image itself, or a placeholder filling the canvas.
+  if (boxProps === undefined) {
+    return missing ? (
+      <div className={`${className} missing`}>{placeholder}</div>
+    ) : (
+      image
+    );
+  }
+  // An Overlay is a box on the canvas holding the image and its handles.
   return (
-    <div {...boxProps} className={className} style={rectStyle(layout(size))}>
-      {missing ? (
-        <span role="img" aria-label="Missing image">
-          Missing image
-        </span>
-      ) : (
-        url !== undefined && (
-          <img
-            src={url}
-            alt={media.originalName}
-            draggable={false}
-            onLoad={(event) => {
-              setSize({
-                width: event.currentTarget.naturalWidth,
-                height: event.currentTarget.naturalHeight,
-              });
-            }}
-            onError={() => {
-              setFailed(true);
-            }}
-          />
-        )
-      )}
+    <div
+      {...boxProps}
+      className={missing ? `${className} missing` : className}
+      style={rectStyle(layout(size))}
+    >
+      {missing ? placeholder : image}
       {children}
     </div>
   );

@@ -81,6 +81,7 @@ describe("Overlays", () => {
       )
     );
     addOverlay("token.png");
+    await editor().findByRole("img", { name: "letter.jpg" });
     const box = editor().getByLabelText("Overlay token.png");
     expect(box.className).toBe("placement hidden");
     expect(overlayRows().getByRole("button", { name: "Show" })).toBeDefined();
