@@ -198,7 +198,7 @@ describe("Backgrounds", () => {
     expect(row.getByText("map.png")).toBeDefined();
     expect(row.getByRole("button", { name: "Show" })).toBeDefined();
     const image = await editor().findByRole("img", { name: "map.png" });
-    expect(image.className).toBe("placement hidden");
+    expect(image.closest(".placement")?.className).toBe("placement hidden");
     expect(image.getAttribute("src")).toMatch(
       /^test-asset:\/\/campaigns\/id-1\/media\/[0-9a-f]{64}\.png$/
     );
@@ -222,7 +222,7 @@ describe("Backgrounds", () => {
     addBackground("map.png");
     const image = await editor().findByRole("img", { name: "map.png" });
     fireEvent.click(editor().getByRole("button", { name: "Show" }));
-    expect(image.className).toBe("placement");
+    expect(image.closest(".placement")?.className).toBe("placement");
     expect(
       editor()
         .getByRole("button", { name: "Hide" })
@@ -235,8 +235,9 @@ describe("Backgrounds", () => {
       target: { value: "contain" },
     });
     fireEvent.load(image);
-    expect(image.style.width).toBe(`${String((9 / 16) * 100)}%`);
-    expect(image.style.height).toBe("100%");
+    const box = image.closest<HTMLElement>(".placement");
+    expect(box?.style.width).toBe(`${String((9 / 16) * 100)}%`);
+    expect(box?.style.height).toBe("100%");
 
     fireEvent.click(editor().getByRole("button", { name: "Remove map.png" }));
     expect(editor().queryByRole("img", { name: "map.png" })).toBeNull();

@@ -2,6 +2,13 @@
 // Background placements.
 import {
   addBackground,
+  addOverlay,
+  fitRect,
+  moveOverlay,
+  removeOverlay,
+  reorderOverlay,
+  resizeOverlay,
+  setOverlayVisible,
   checkSceneName,
   checkSceneTitle,
   deleteScene,
@@ -20,6 +27,7 @@ import {
 } from "@ttrpg-helper/core";
 import { useState } from "react";
 import { MediaPicker } from "./MediaPicker";
+import { OverlayPlacement } from "./OverlayPlacement";
 import type { Platform } from "./platform";
 import { SceneImage } from "./SceneImage";
 import type { ScenesEdit } from "./useScenes";
@@ -39,7 +47,9 @@ export function SceneEditor({
   platform,
   apply,
 }: Props) {
-  const [picking, setPicking] = useState(false);
+  const [picking, setPicking] = useState<"background" | "overlay" | undefined>(
+    undefined
+  );
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const edit = (change: (scene: Scene) => Scene) => {
     apply((scenes) => updateScene(scenes, scene.id, change));
@@ -109,9 +119,24 @@ export function SceneEditor({
             key={background.id}
             campaignId={campaignId}
             media={mediaById(background.mediaId)}
-            fit={background.fit}
+            layout={(size) => fitRect(size, background.fit)}
             hidden={!background.visible}
             platform={platform}
+          />
+        ))}
+        {scene.overlays.map((overlay) => (
+          <OverlayPlacement
+            key={overlay.id}
+            campaignId={campaignId}
+            overlay={overlay}
+            media={mediaById(overlay.mediaId)}
+            platform={platform}
+            onMove={(x, y) => {
+              edit(moveOverlay(overlay.id, x, y));
+            }}
+            onResize={(height) => {
+              edit(resizeOverlay(overlay.id, height));
+            }}
           />
         ))}
       </div>
@@ -120,19 +145,19 @@ export function SceneEditor({
         <h3>Backgrounds</h3>
         <button
           type="button"
-          aria-expanded={picking}
+          aria-expanded={picking === "background"}
           onClick={() => {
-            setPicking(!picking);
+            setPicking(picking === "background" ? undefined : "background");
           }}
         >
           Add Background
         </button>
       </div>
-      {picking && (
+      {picking === "background" && (
         <MediaPicker
           media={media}
           onPick={(mediaId) => {
-            setPicking(false);
+            setPicking(undefined);
             edit(addBackground(platform.newId(), mediaId));
           }}
         />
@@ -178,6 +203,81 @@ export function SceneEditor({
                   aria-label={`Remove ${name}`}
                   onClick={() => {
                     edit(removeBackground(background.id));
+                  }}
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
+      <div className="placements-header">
+        <h3>Overlays</h3>
+        <button
+          type="button"
+          aria-expanded={picking === "overlay"}
+          onClick={() => {
+            setPicking(picking === "overlay" ? undefined : "overlay");
+          }}
+        >
+          Add Overlay
+        </button>
+      </div>
+      {picking === "overlay" && (
+        <MediaPicker
+          media={media}
+          onPick={(mediaId) => {
+            setPicking(undefined);
+            edit(addOverlay(platform.newId(), mediaId));
+          }}
+        />
+      )}
+      {scene.overlays.length > 0 && (
+        <ol className="placements overlays" aria-label="Overlays, top last">
+          {scene.overlays.map((overlay, index) => {
+            const name =
+              mediaById(overlay.mediaId)?.originalName ?? "Missing image";
+            return (
+              <li key={overlay.id} className={overlay.visible ? "" : "hidden"}>
+                <span className="placement-name" title={name}>
+                  {name}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Move ${name} up`}
+                  disabled={index === scene.overlays.length - 1}
+                  onClick={() => {
+                    edit(reorderOverlay(overlay.id, "up"));
+                  }}
+                >
+                  Up
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Move ${name} down`}
+                  disabled={index === 0}
+                  onClick={() => {
+                    edit(reorderOverlay(overlay.id, "down"));
+                  }}
+                >
+                  Down
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={overlay.visible}
+                  onClick={() => {
+                    edit(setOverlayVisible(overlay.id, !overlay.visible));
+                  }}
+                >
+                  {overlay.visible ? "Hide" : "Show"}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remove ${name}`}
+                  onClick={() => {
+                    edit(removeOverlay(overlay.id));
                   }}
                 >
                   Remove

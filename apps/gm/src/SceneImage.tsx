@@ -1,21 +1,23 @@
 // One image placement on the canvas, through the asset protocol. A Media that is gone from the
-// index, or whose file won't load, shows the "Missing image" placeholder.
-import {
-  type CanvasRect,
-  type Fit,
-  fitRect,
-  type Media,
-  mediaFile,
-} from "@ttrpg-helper/core";
-import { type CSSProperties, useEffect, useState } from "react";
+// index, or whose file won't load, shows the "Missing image" placeholder. Where the placement
+// sits comes from `layout`, given the image's natural size once it has loaded.
+import { type CanvasRect, type Media, mediaFile } from "@ttrpg-helper/core";
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import type { Platform } from "./platform";
+
+export type ImageSize = { readonly width: number; readonly height: number };
 
 interface Props {
   readonly campaignId: string;
   readonly media: Media | undefined;
-  readonly fit: Fit;
+  readonly layout: (size: ImageSize) => CanvasRect;
   readonly hidden: boolean;
   readonly platform: Platform;
+  /** Extra props for the placement's box, such as drag handlers. */
+  readonly boxProps?: React.HTMLAttributes<HTMLDivElement> & {
+    readonly "data-gesture"?: string | undefined;
+  };
+  readonly children?: ReactNode;
 }
 
 const percent = (fraction: number) => `${String(fraction * 100)}%`;
@@ -32,13 +34,15 @@ function rectStyle(rect: CanvasRect): CSSProperties {
 export function SceneImage({
   campaignId,
   media,
-  fit,
+  layout,
   hidden,
   platform,
+  boxProps,
+  children,
 }: Props) {
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [failed, setFailed] = useState(false);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState<ImageSize>({ width: 0, height: 0 });
 
   useEffect(() => {
     if (media === undefined) return;
@@ -56,34 +60,39 @@ export function SceneImage({
     };
   }, [campaignId, media, platform]);
 
-  const className = hidden ? "placement hidden" : "placement";
-  if (media === undefined || failed) {
-    return (
-      <div
-        className={`${className} missing`}
-        role="img"
-        aria-label="Missing image"
-      >
-        Missing image
-      </div>
-    );
-  }
-  if (url === undefined) return null;
+  const missing = media === undefined || failed;
+  const className = [
+    "placement",
+    hidden ? "hidden" : "",
+    missing ? "missing" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <img
-      className={className}
-      src={url}
-      alt={media.originalName}
-      style={rectStyle(fitRect(size, fit))}
-      onLoad={(event) => {
-        setSize({
-          width: event.currentTarget.naturalWidth,
-          height: event.currentTarget.naturalHeight,
-        });
-      }}
-      onError={() => {
-        setFailed(true);
-      }}
-    />
+    <div {...boxProps} className={className} style={rectStyle(layout(size))}>
+      {missing ? (
+        <span role="img" aria-label="Missing image">
+          Missing image
+        </span>
+      ) : (
+        url !== undefined && (
+          <img
+            src={url}
+            alt={media.originalName}
+            draggable={false}
+            onLoad={(event) => {
+              setSize({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              });
+            }}
+            onError={() => {
+              setFailed(true);
+            }}
+          />
+        )
+      )}
+      {children}
+    </div>
   );
 }
