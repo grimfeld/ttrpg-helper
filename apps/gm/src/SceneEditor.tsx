@@ -38,6 +38,8 @@ interface Props {
   readonly media: readonly Media[];
   readonly platform: Platform;
   readonly apply: (edit: ScenesEdit) => void;
+  readonly isActive: boolean;
+  readonly onActivate: () => void;
 }
 
 export function SceneEditor({
@@ -46,6 +48,8 @@ export function SceneEditor({
   media,
   platform,
   apply,
+  isActive,
+  onActivate,
 }: Props) {
   const [picking, setPicking] = useState<"background" | "overlay" | undefined>(
     undefined
@@ -102,14 +106,30 @@ export function SceneEditor({
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmingDelete(true);
-            }}
-          >
-            Delete Scene
-          </button>
+          <div className="scene-actions">
+            <button
+              type="button"
+              className="activate-button"
+              title="Put this Scene on air (Ctrl+Enter)"
+              onClick={onActivate}
+            >
+              {isActive ? "Activate again" : "Activate"}
+            </button>
+            <button
+              type="button"
+              disabled={isActive}
+              title={
+                isActive
+                  ? "This Scene is on air. Activate another Scene to delete this one."
+                  : undefined
+              }
+              onClick={() => {
+                setConfirmingDelete(true);
+              }}
+            >
+              Delete Scene
+            </button>
+          </div>
         )}
       </div>
 

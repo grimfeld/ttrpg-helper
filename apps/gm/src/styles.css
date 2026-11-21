@@ -405,3 +405,152 @@ select {
     transform: rotate(360deg);
   }
 }
+
+/* --- On air --------------------------------------------------------------------------- */
+
+.top-bar-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.blackout-button[aria-pressed="true"] {
+  background: #000;
+  border-color: var(--danger);
+}
+
+.scene-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.activate-button {
+  border-color: var(--accent);
+}
+
+.scene-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.scene-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.on-air-mark {
+  flex: none;
+  font-size: 0.75rem;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #000;
+}
+
+.on-air-monitor {
+  margin-bottom: 16px;
+}
+
+.on-air-monitor h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.on-air-monitor .broadcast-frame {
+  aspect-ratio: 16 / 9;
+}
+
+/* The Broadcast window: black, no controls, no cursor. */
+.broadcast-window {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  cursor: none;
+}
+
+.broadcast-window .broadcast-frame {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Any frame letterboxes the 16:9 canvas. */
+.broadcast-frame {
+  display: grid;
+  place-items: center;
+  background: #000;
+  overflow: hidden;
+  container-type: size;
+}
+
+.broadcast-canvas {
+  position: relative;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+}
+
+.take {
+  position: absolute;
+  inset: 0;
+}
+
+.take.fade-in {
+  animation-name: fade-in;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.broadcast-image {
+  position: absolute;
+}
+
+.scene-title {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 5cqh;
+  text-shadow: 0 0 0.3em #000;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.blackout {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition-property: opacity;
+}
+
+.blackout[data-on="true"] {
+  opacity: 1;
+}
+
+/* The Broadcast window has no minimum size and never scrolls. */
+body:has(.broadcast-window) {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}

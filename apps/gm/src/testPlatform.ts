@@ -1,5 +1,6 @@
 // An in-memory Platform for tests: files in memory, predictable ids, a picker tests can load.
 import {
+  type BroadcastProjection,
   createMemoryFileSystem,
   type FileSystem,
   type PickedFile,
@@ -10,13 +11,53 @@ import { webCryptoSha256 } from "./platform";
 export interface TestPlatform extends Platform {
   /** The files the next Import picks; empty means the GM cancels. */
   nextPick: readonly PickedFile[];
+  /** The fake Broadcast window. */
+  readonly broadcastWindow: FakeBroadcastWindow;
+}
+
+/** Records what the main window sends, and plays a Broadcast window opening. */
+export interface FakeBroadcastWindow {
+  readonly sent: BroadcastProjection[];
+  opened: number;
+  fullscreenToggles: number;
+  /** A Broadcast window opens and asks for what is on air. */
+  ready(): void;
 }
 
 export function testPlatform(
   fileSystem: FileSystem = createMemoryFileSystem()
 ): TestPlatform {
   let ids = 0;
+  const readyCallbacks = new Set<() => void>();
+  const broadcastWindow: FakeBroadcastWindow = {
+    sent: [],
+    opened: 0,
+    fullscreenToggles: 0,
+    ready: () => {
+      for (const callback of readyCallbacks) callback();
+    },
+  };
   const platform: TestPlatform = {
+    broadcastWindow,
+    broadcast: {
+      open: () => {
+        broadcastWindow.opened += 1;
+        return Promise.resolve();
+      },
+      toggleFullscreen: () => {
+        broadcastWindow.fullscreenToggles += 1;
+        return Promise.resolve();
+      },
+      send: (projection) => {
+        broadcastWindow.sent.push(projection);
+      },
+      onReady: (callback) => {
+        readyCallbacks.add(callback);
+        return () => {
+          readyCallbacks.delete(callback);
+        };
+      },
+    },
     fileSystem,
     newId: () => `id-${String(++ids)}`,
     sha256: webCryptoSha256,
